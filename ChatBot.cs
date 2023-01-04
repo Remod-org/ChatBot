@@ -1,6 +1,6 @@
 ﻿#region License (GPL v2)
 /*
-    ChatBot
+    ChatBot - Proof of concept ChatGPT bot for Rust
     Copyright (c) 2023 RFC1920 <desolationoutpostpve@gmail.com>
 
     This program is free software; you can redistribute it and/or
@@ -31,11 +31,11 @@ using System.Text;
 
 namespace Oxide.Plugins
 {
-    [Info("ChatBot", "RFC1920", "1.0.3")]
-    [Description("Uses ChatGPT to get short answers to basic questions... eventually.")]
+    [Info("ChatBot", "RFC1920", "1.0.4")]
+    [Description("Uses ChatGPT to get short answers to basic questions.")]
     internal class ChatBot : RustPlugin
     {
-        // Must disable Oxide's sandbox for this!
+        // You must disable Oxide's sandbox for this!
         // See https://umod.org/guides/oxide/disabling-plugin-sandboxing
         private ConfigData configData;
         public static ChatBot Instance;
@@ -61,7 +61,7 @@ namespace Oxide.Plugins
                     playermessages.Add(player.userID, null);
                 }
 
-                string newmessage = message.Substring(4).Trim();
+                string newmessage = message.Substring(configData.Options.keyWord.Length).Trim();
                 if (string.IsNullOrEmpty(newmessage))
                 {
                     Player.Reply(
