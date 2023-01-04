@@ -15,6 +15,7 @@ You may also need to adjust/remove UFilter, BetterChat, et al.  ymmv
 {
   "Options": {
     "apiKey": "",
+    "keyWord": "bot?",
     "requirePermission": false,
     "ChatIcon": "76561199467638159"
   },
@@ -32,6 +33,8 @@ You will need to create an API key at perhaps https://beta.openai.com/account/ap
 Save the key somewhere safe and add it to the config above at "apiKey": "HERE"
 
 Answers may be slow unless and when a paid account is available and implemented.
+
+The keyWord can be changed, but will only be checked at the start of a chat message, e.g. "bot? hello?" not "was that a bot?"
 
 ## Permissions
 

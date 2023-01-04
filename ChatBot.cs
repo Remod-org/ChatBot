@@ -31,7 +31,7 @@ using System.Text;
 
 namespace Oxide.Plugins
 {
-    [Info("ChatBot", "RFC1920", "1.0.2")]
+    [Info("ChatBot", "RFC1920", "1.0.3")]
     [Description("Uses ChatGPT to get short answers to basic questions... eventually.")]
     internal class ChatBot : RustPlugin
     {
@@ -54,7 +54,7 @@ namespace Oxide.Plugins
             if (string.IsNullOrEmpty(configData.Options.apiKey)) return null;
             if (configData.Options.requirePermission && !permission.UserHasPermission(player.UserIDString, permUse)) return null;
 
-            if (message.StartsWith("bot?"))
+            if (message.StartsWith(configData.Options.keyWord))
             {
                 if (!playermessages.ContainsKey(player.userID))
                 {
@@ -62,6 +62,15 @@ namespace Oxide.Plugins
                 }
 
                 string newmessage = message.Substring(4).Trim();
+                if (string.IsNullOrEmpty(newmessage))
+                {
+                    Player.Reply(
+                        player,
+                        Lang("emptyquestion"),
+                        ulong.Parse(configData.Options.ChatIcon)
+                    );
+                    return null;
+                }
                 GetAIResponse(player.userID, newmessage);
                 playermessages[player.userID] = null;
             }
@@ -102,7 +111,7 @@ namespace Oxide.Plugins
                         if (configData.debug) Puts(completionText);
                         if (string.IsNullOrEmpty(completionText))
                         {
-                            playermessages[userid] = "no response :(";
+                            playermessages[userid] = Lang("noresponse");
                         }
 
                         playermessages[userid] = completionText;
@@ -171,7 +180,9 @@ namespace Oxide.Plugins
         {
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["notauthorized"] = "You don't have permission to do that !!"
+                ["notauthorized"] = "You don't have permission to do that !!",
+                ["emptyquestion"] = "Did you have a question?",
+                ["noresponse"] = "No response :("
             }, this);
         }
 
@@ -194,6 +205,7 @@ namespace Oxide.Plugins
         public class Options
         {
             public string apiKey;
+            public string keyWord;
             public bool requirePermission;
             public string ChatIcon;
         }
@@ -202,6 +214,10 @@ namespace Oxide.Plugins
         {
             configData = Config.ReadObject<ConfigData>();
 
+            if (string.IsNullOrEmpty(configData.Options.keyWord))
+            {
+                configData.Options.keyWord = "bot?";
+            }
             configData.Version = Version;
             SaveConfig(configData);
         }
@@ -214,6 +230,7 @@ namespace Oxide.Plugins
                 debug = false,
                 Options = new Options()
                 {
+                    keyWord = "bot?",
                     apiKey = "",
                     requirePermission = true,
                     ChatIcon = "76561199467638159"
