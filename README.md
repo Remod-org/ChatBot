@@ -31,7 +31,7 @@ You will need to create an API key at perhaps https://beta.openai.com/account/ap
 
 Save the key somewhere safe and add it to the config above at "apiKey": "HERE"
 
-Answers are slow unless and when a paid account is available and implemented.
+Answers may be slow unless and when a paid account is available and implemented.
 
 ## Permissions
 
