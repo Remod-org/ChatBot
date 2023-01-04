@@ -31,7 +31,7 @@ using System.Text;
 
 namespace Oxide.Plugins
 {
-    [Info("ChatBot", "RFC1920", "1.0.1")]
+    [Info("ChatBot", "RFC1920", "1.0.2")]
     [Description("Uses ChatGPT to get short answers to basic questions... eventually.")]
     internal class ChatBot : RustPlugin
     {
@@ -63,18 +63,6 @@ namespace Oxide.Plugins
 
                 string newmessage = message.Substring(4).Trim();
                 GetAIResponse(player.userID, newmessage);
-                if (string.IsNullOrEmpty(playermessages[player.userID]))
-                {
-                    playermessages[player.userID] = "no response :(";
-                }
-                foreach (BasePlayer pl in BasePlayer.activePlayerList)
-                {
-                    Player.Reply(
-                        pl,
-                        playermessages[player.userID],
-                        ulong.Parse(configData.Options.ChatIcon)
-                    );
-                }
                 playermessages[player.userID] = null;
             }
             return null;
@@ -110,13 +98,26 @@ namespace Oxide.Plugins
                     }
                     if (completionResponse != null)
                     {
-                        string completionText = completionResponse.Choices?[0]?.Text;
-                        Puts(completionText);
+                        string completionText = completionResponse.Choices?[0]?.Text.Trim();
+                        if (configData.debug) Puts(completionText);
+                        if (string.IsNullOrEmpty(completionText))
+                        {
+                            playermessages[userid] = "no response :(";
+                        }
+
                         playermessages[userid] = completionText;
+                        foreach (BasePlayer pl in BasePlayer.activePlayerList)
+                        {
+                            Player.Reply(
+                                pl,
+                                playermessages[userid],
+                                ulong.Parse(configData.Options.ChatIcon)
+                            );
+                        }
                     }
                     else
                     {
-                        Puts("Request error");
+                        if (configData.debug) Puts("Request error");
                     }
                 }
             }
