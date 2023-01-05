@@ -1,4 +1,4 @@
-﻿#region License (GPL v2)
+#region License (GPL v2)
 /*
     ChatBot - Proof of concept ChatGPT bot for Rust
     Copyright (c) 2023 RFC1920 <desolationoutpostpve@gmail.com>
@@ -31,7 +31,7 @@ using System.Text;
 
 namespace Oxide.Plugins
 {
-    [Info("ChatBot", "RFC1920", "1.0.4")]
+    [Info("ChatBot", "RFC1920", "1.0.5")]
     [Description("Uses ChatGPT to get short answers to basic questions.")]
     internal class ChatBot : RustPlugin
     {
@@ -81,7 +81,7 @@ namespace Oxide.Plugins
         {
             CompletionRequest completionRequest = new CompletionRequest
             {
-                Model = "text-davinci-003",
+                Model = configData.Options.model,
                 Prompt = message,
                 MaxTokens = 250
             };
@@ -137,7 +137,7 @@ namespace Oxide.Plugins
             // Fails.
             CompletionRequest completionRequest = new CompletionRequest
             {
-                Model = "text-davinci-003",
+                Model = configData.Options.model,
                 Prompt = message,
                 MaxTokens = 120
             };
@@ -205,6 +205,7 @@ namespace Oxide.Plugins
         public class Options
         {
             public string apiKey;
+            public string model;
             public string keyWord;
             public bool requirePermission;
             public string ChatIcon;
@@ -217,6 +218,12 @@ namespace Oxide.Plugins
             if (string.IsNullOrEmpty(configData.Options.keyWord))
             {
                 configData.Options.keyWord = "bot?";
+            }
+            if (string.IsNullOrEmpty(configData.Options.model))
+            {
+                configData.Options.model = "text-ada-001"; // Cheapest is text-ada-001
+                // text-davinci-003 (expensive), text-curie-001 (less expensive), text-babbage-001 (less so), or text-ada-001 (cheapest)
+                // See https://beta.openai.com/docs/models/gpt-3
             }
             configData.Version = Version;
             SaveConfig(configData);
