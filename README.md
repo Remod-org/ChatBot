@@ -43,12 +43,13 @@ The cost of the requests depends on the model used.  We default to the cheapest:
   - text-ada-001 (cheapest, default)
 
 See https://beta.openai.com/docs/models/gpt-3 for more information on these models.
+See https://openai.com/api/pricing/ for pricing per request...
 
 The keyWord can be changed, but will only be checked at the start of a chat message, e.g. "bot? hello?" not "was that a bot?"
 
 ## Permissions
 
-  - chatbot.use -- if the configuration item requirePermission is set to true, players will need to have this permissions in order to query the bot.
+  - chatbot.use -- if the configuration item requirePermission is set to true, players will need to have this permission in order to query the bot.
 
 ## Usage
 
@@ -59,5 +60,6 @@ Beyond that, usage is simply to type something like the following in chat.  Note
   - bot? What is the game Rust?
 
 
-Responses will eventually be delivered to ALL players.  There is nothing private about this, currently.
+Responses will be delivered to ALL players if in Global chat, and Team members if in Team chat.
+
 

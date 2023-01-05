@@ -31,7 +31,7 @@ using System.Text;
 
 namespace Oxide.Plugins
 {
-    [Info("ChatBot", "RFC1920", "1.0.5")]
+    [Info("ChatBot", "RFC1920", "1.0.6")]
     [Description("Uses ChatGPT to get short answers to basic questions.")]
     internal class ChatBot : RustPlugin
     {
@@ -71,13 +71,13 @@ namespace Oxide.Plugins
                     );
                     return null;
                 }
-                GetAIResponse(player.userID, newmessage);
+                GetAIResponse(player.userID, newmessage, channel);
                 playermessages[player.userID] = null;
             }
             return null;
         }
 
-        public async void GetAIResponse(ulong userid, string message)
+        public async void GetAIResponse(ulong userid, string message, Chat.ChatChannel channel)
         {
             CompletionRequest completionRequest = new CompletionRequest
             {
@@ -105,29 +105,49 @@ namespace Oxide.Plugins
                             }
                         }
                     }
+
                     if (completionResponse != null)
                     {
                         string completionText = completionResponse.Choices?[0]?.Text.Trim();
                         if (configData.debug) Puts(completionText);
+
                         if (string.IsNullOrEmpty(completionText))
                         {
                             playermessages[userid] = Lang("noresponse");
+                            Player.Reply(BasePlayer.Find(userid.ToString()), playermessages[userid]);
+                            return;
                         }
 
                         playermessages[userid] = completionText;
-                        foreach (BasePlayer pl in BasePlayer.activePlayerList)
+                        if (channel == Chat.ChatChannel.Global)
                         {
-                            Player.Reply(
-                                pl,
-                                playermessages[userid],
-                                ulong.Parse(configData.Options.ChatIcon)
-                            );
+                            if (configData.debug) Puts("Sending global reply.");
+                            foreach (BasePlayer pl in BasePlayer.activePlayerList)
+                            {
+                                Player.Reply(
+                                    pl,
+                                    playermessages[userid],
+                                    ulong.Parse(configData.Options.ChatIcon)
+                                );
+                            }
                         }
+                        else if (channel == Chat.ChatChannel.Team)
+                        {
+                            if (configData.debug) Puts("Sending team reply.");
+                            RelationshipManager.PlayerTeam team = BasePlayer.Find(userid.ToString()).Team;
+                            foreach (ulong pl in team.members)
+                            {
+                                Player.Reply(
+                                    BasePlayer.Find(pl.ToString()),
+                                    playermessages[userid],
+                                    ulong.Parse(configData.Options.ChatIcon)
+                                );
+                            }
+                        }
+                        return;
                     }
-                    else
-                    {
-                        if (configData.debug) Puts("Request error");
-                    }
+
+                    if (configData.debug) Puts("Request error");
                 }
             }
         }
@@ -146,7 +166,7 @@ namespace Oxide.Plugins
             {
                 { "Authorization", $"Bearer {configData.Options.apiKey}" }
             };
-            Puts($"Sending request: {requestString}");
+            if (configData.debug) Puts($"Sending request: {requestString}");
             webrequest.Enqueue(
                 "https://api.openai.com/v1/completions",
                 requestString,
@@ -154,19 +174,19 @@ namespace Oxide.Plugins
                 {
                     if (code != 200 || response == null)
                     {
-                        Puts($"Couldn't get an answer from OpenAI!: {code}");
+                        if (configData.debug) Puts($"Couldn't get an answer from OpenAI!: {code}");
                         return;
                     }
                     CompletionResponse completionResponse = JsonConvert.DeserializeObject<CompletionResponse>(response);
                     if (completionResponse != null)
                     {
                         string completionText = completionResponse.Choices?[0]?.Text;
-                        Puts(completionText);
+                        if (configData.debug) Puts(completionText);
                         playermessages[userid] = completionText;
                     }
                     else
                     {
-                        Puts("Request error");
+                        if (configData.debug) Puts("Request error");
                     }
                 },
                 Instance,
